@@ -1,4 +1,3 @@
-// src/App.js
 import React, { useState } from "react";
 import axios from "axios";
 
@@ -8,24 +7,25 @@ function App() {
   const [token, setToken] = useState(null);
 
   const handleLogin = async (e) => {
-    e.preventDefault(); // 폼 제출 시 페이지 리로드 방지
+    e.preventDefault();
 
     try {
       const response = await axios.post("http://localhost:5000/login", {
         email,
         password,
       });
+      console.log("response 정보: ", response);
       console.log("response.data 정보: ", response.data);
       setToken(response.data.accessToken);
-      alert("Login successful! Token received.");
+      alert("로그인에 성공하였습니다. 토큰을 발급합니다.");
     } catch (error) {
-      alert("Login failed!");
+      alert("로그인에 실패하였습니다.");
     }
   };
 
   return (
     <div className="App">
-      <h1>Login</h1>
+      <h1>로그인</h1>
       <form onSubmit={handleLogin}>
         <input
           placeholder="Email"
@@ -43,7 +43,7 @@ function App() {
 
       {token && (
         <div>
-          <h2>Your Token:</h2>
+          <h2>토큰:</h2>
           <div>{token}</div>
         </div>
       )}
