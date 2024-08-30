@@ -7,11 +7,10 @@
 
 ## 의존성
 
-- 서버: Express, body-parser
-- JWT 인증 구현
-  - axios, json-server(API 통신 및 구현)
-  - json-server-auth(인증 미들웨어)
-  - jsonwebtoken(JWT 생성 & 검증)
+- 서버: Express, body-parser, cookie-parser
+- DB: json-server
+- JWT: json-server-auth(인증 미들웨어), jsonwebtoken(JWT 생성 & 검증)
+- API 통신: axios
 
 ## 커밋 이모티콘 정리
 

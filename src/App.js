@@ -6,29 +6,22 @@ function App() {
   const [password, setPassword] = useState("");
   const [accessToken, setAccessToken] = useState(null);
 
-  // 리프레시 토큰이 클라이언트 쿠키에 저장됐는 지 확인을 위한 임시 콘솔 처리
-  const allCookies = document.cookie;
-  console.log("All Cookies:", allCookies);
-
-  function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(";").shift();
-  }
-
-  // 예를 들어 "refreshToken"이라는 이름의 쿠키를 읽어옵니다.
-  const refreshToken = getCookie("refreshToken");
-  console.log("Refresh Token:", refreshToken);
-
+  // 로그인 요청
   const handleLogin = async (e) => {
     e.preventDefault();
-
     try {
-      const response = await axios.post("http://localhost:5000/login", {
-        email,
-        password,
-      });
-      console.log("응답:", response);
+      const response = await axios.post(
+        "http://localhost:5000/login", // 1. 엔드포인트
+        // 2. 데이터 객체
+        {
+          email,
+          password,
+        },
+        // 3. 옵션 객체
+        {
+          withCredentials: true,
+        }
+      );
       setAccessToken(response.data.accessToken);
       alert("로그인에 성공하였습니다. 액세스 토큰을 발급받았습니다.");
     } catch (error) {
@@ -36,28 +29,43 @@ function App() {
     }
   };
 
-  // 보호된 데이터 요청
+  // API 요청 시 액세스 토큰을 사용
   const handleRequest = async () => {
     try {
-      // API 요청 시 액세스 토큰 사용
-      const response = await axios.get("http://localhost:5000/protected", {
+      await axios.get("http://localhost:5000/protected", {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
+        withCredentials: true,
       });
-      console.log("보호된 데이터:", response.data);
+      window.alert("토큰 검증에 성공하였습니다.");
     } catch (error) {
-      if (error.response.status === 401) {
-        // 액세스 토큰이 만료된 경우 리프레시 토큰을 사용해 새로운 액세스 토큰 요청
-        try {
-          const response = await axios.post("http://localhost:5000/token");
-          setAccessToken(response.data.accessToken);
-          alert("새로운 액세스 토큰을 발급받았습니다.");
-        } catch (error) {
-          alert("리프레시 토큰을 사용한 액세스 토큰 발급에 실패하였습니다.");
+      // 서버가 응답을 보낸 경우
+      if (error.response) {
+        // 액세스 토큰이 만료된 경우
+        if (error.response.status === 403) {
+          window.alert(
+            "액세스 토큰이 만료되었습니다. 새로운 토큰을 발급받습니다."
+          );
+          try {
+            const response = await axios.post(
+              "http://localhost:5000/token",
+              null,
+              {
+                withCredentials: true,
+              }
+            );
+            setAccessToken(response.data.accessToken); // 새 엑세스 토큰 저장
+            alert("새로운 액세스 토큰을 발급받았습니다.");
+          } catch (error) {
+            alert("리프레시 토큰을 사용한 액세스 토큰 발급에 실패하였습니다.");
+          }
+        } else {
+          alert("요청에 실패하였습니다.");
         }
       } else {
-        alert("요청에 실패하였습니다.");
+        // 서버가 응답하지 않았거나 네트워크 오류 발생
+        alert("요청 중 오류가 발생했습니다. 네트워크 상태를 확인하세요.");
       }
     }
   };
@@ -94,8 +102,8 @@ function App() {
         <div>
           <h2>발급된 액세스 토큰:</h2>
           <div>{accessToken}</div>
-          <button onClick={handleRequest}>보호된 데이터 요청</button>
-          <button onClick={handleLogout}>Logout</button>
+          <button onClick={handleRequest}>토큰이 필요한 API 요청</button>
+          <button onClick={handleLogout}>로그아웃</button>
         </div>
       )}
     </div>
